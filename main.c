@@ -303,6 +303,8 @@ void PrintEnvironment() {
 		int num_cpus = 0;
 		char cpu_type[1000];
 		char cache_size[1000];
+		cpu_type[0] = '\0';
+		cache_size[0] = '\0';
 		while (fgets(line, sizeof(line), cpuinfo) != NULL) {
 			char *val, *ptr;
 			char *sep = strchr(line, ':');
@@ -316,12 +318,54 @@ void PrintEnvironment() {
 			val = sep+1;
 			if (!strcmp(line,"model name")) {
 				strcpy(cpu_type, val);
+			} else if (!strcmp(line, "processor")) {
 				++num_cpus;
 			} else if (!strcmp(line, "cache size")) {
 				strcpy(cache_size, val);
 			}
 		}
 		fclose(cpuinfo);
+		if (!cpu_type[0]) {
+			char family[250], manuf[250], version[250], freq[200], *ptr;
+			int cachei = 0;
+			cpuinfo = popen("dmidecode -t processor", "r");
+			if (cpuinfo) {
+				while(fgets(line, sizeof(line), cpuinfo)) {
+					char *sep = strchr(line, ':');
+					if (!sep) continue;
+					*sep = '\0';
+					sep += 2;
+					ptr = strrchr(sep, '\n');
+					if (ptr) *ptr = '\0';
+					ptr = line+1;
+					if (!strcmp(ptr, "Manufacturer")) {
+						strcpy(manuf, sep);
+					} else if (!strcmp(ptr, "Family")) {
+						strcpy(family, sep);
+					} else if (!strcmp(ptr, "Version")) {
+						strcpy(version, sep);
+					} else if (!strcmp(ptr, "Max Speed")) {
+						strcpy(freq, sep);
+					}
+				}
+				pclose(cpuinfo);
+				snprintf(cpu_type, sizeof(cpu_type), "%s %s %s %s\n", manuf, family, version, freq);
+				cpuinfo = popen("dmidecode -t cache", "r");
+				while(fgets(line, sizeof(line), cpuinfo)) {
+					char *sep = strchr(line, ':');
+					if (!sep) continue;
+					*sep = '\0';
+					sep += 2;
+					ptr = line+1;
+					if (!strcmp(ptr, "Installed Size")) {
+						int i = atoi(sep);
+						if (i > cachei)
+							strcpy(cache_size, sep);
+					}
+				}
+				pclose(cpuinfo);
+			}
+		}
 		fprintf(stdout, "CPU:		%d * %s", num_cpus, cpu_type);
 		fprintf(stdout, "CPUCache:   %s", cache_size);
 	}
