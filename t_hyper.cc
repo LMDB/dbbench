@@ -142,6 +142,7 @@ static void db_read(DBB_local *dl) {
 			snprintf(key, sizeof(key), "%016lx", k);
 			read++;
 			if (db->Get(options, key, &value).ok()) {
+				bytes += FLAGS_key_size + value.size();
 				found++;
 			}
 			DBB_opdone(dl);
@@ -167,8 +168,8 @@ static void db_read(DBB_local *dl) {
 			++i;
 		}
 		delete iter;
-		dl->dl_bytes += bytes;
 	}
+	dl->dl_bytes += bytes;
 }
 
 static char *db_verstr() {
