@@ -437,6 +437,7 @@ void *StatsThread(void *v) {
 	DBB_local *args = v;
 	DBB_global *dg = args->dl_global;
 	int i;
+	int banner = 0;
 
 	pthread_mutex_lock(&dg->dg_mu);
 	while(!dg->dg_start)
@@ -447,6 +448,11 @@ void *StatsThread(void *v) {
 		sleep(FLAGS_stats_period);
 		if (dg->dg_done >= dg->dg_threads)
 			break;
+		if (!banner) {
+			banner = 1;
+			fprintf(stderr,
+			"     Timestamp     	Thread	Cur Ops	Tot Ops	Cur Rate	Avg Rate	Cur Sec 	Tot Sec\n");
+		}
 		gettimeofday(&now, NULL);
 		char buf[20];
 		TimeStr(now.tv_sec, buf);
@@ -457,8 +463,7 @@ void *StatsThread(void *v) {
 			timesub(&end1, &dl->dl_last_report_finish);
 			timesub(&end2, &dl->dl_start);
 			fprintf(stderr,
-			"%s ... thread %d: (%zd,%zd) ops and "
-			"(%.1f,%.1f) ops/second in (%d.%06d,%d.%06d) seconds\n",
+			"%s\t%d\t%zd\t%zd\t%.1f\t%.1f\t%d.%06d\t%d.%06d\n",
 			buf, dl->dl_id,
 			done - dl->dl_last_report_done, done,
 			(float)(done - dl->dl_last_report_done) / end1.tv_sec,
