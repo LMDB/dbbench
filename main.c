@@ -291,7 +291,7 @@ void PrintWarnings() {
 }
 
 void PrintEnvironment() {
-	fprintf(stdout, "%s: version %s\n", dbb_backend->db_longname, dbb_backend->db_version);
+	fprintf(stdout, "%s: version %s\n", dbb_backend->db_longname, dbb_backend->db_version());
 
 #if defined(__linux)
 	time_t now = time(NULL);

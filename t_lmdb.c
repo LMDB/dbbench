@@ -160,8 +160,8 @@ static void db_read(DBB_local *dl) {
 	MDB_txn *txn;
 	MDB_cursor *cursor;
 	MDB_val key, data;
-	int64_t read = 0;
-	int64_t found = 0;
+	size_t read = 0;
+	size_t found = 0;
 	int64_t bytes = 0;
 	char ckey[100];
 	int ikey;
@@ -233,6 +233,10 @@ static void db_read(DBB_local *dl) {
 		free(buf);
 }
 
+static char *db_verstr() {
+	return MDB_VERSION_STRING;
+}
+
 static arg_desc db_opts[] = {
 	{ "metasync", arg_onoff, &FLAGS_metasync },
 	{ "writemap", arg_onoff, &FLAGS_writemap },
@@ -245,8 +249,8 @@ static arg_desc db_opts[] = {
 static DBB_backend db_lmdb = {
 	"lmdb",
 	"LMDB",
-	MDB_VERSION_STRING,
 	db_opts,
+	db_verstr,
 	db_open,
 	db_close,
 	db_read,

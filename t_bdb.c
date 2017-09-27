@@ -172,6 +172,10 @@ static void db_read(DBB_local *dl) {
 	}
 }
 
+static char *db_verstr() {
+	return DB_VERSION_STRING;
+};
+
 static arg_desc db_opts[] = {
 	{ "cachesize", arg_long, &FLAGS_cache_size },
 	{ "pagesize", arg_int, &FLAGS_page_size },
@@ -181,8 +185,8 @@ static arg_desc db_opts[] = {
 static DBB_backend db_bdb = {
 	"bdb",
 	"BerkeleyDB",
-	DB_VERSION_STRING,
 	db_opts,
+	db_verstr,
 	db_open,
 	db_close,
 	db_read,

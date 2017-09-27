@@ -5,6 +5,10 @@
 #include <sys/time.h>
 #include "args.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct DBB_val {
 	size_t	dv_size;
 	void	*dv_data;
@@ -94,6 +98,7 @@ typedef struct DBB_local {
 	DBB_val dl_message;
 } DBB_local;
 
+typedef char *(verfunc)();
 typedef void (openfunc)(int dbflags);
 typedef void (closefunc)();
 typedef void (readfunc)(DBB_local *arg);
@@ -101,8 +106,8 @@ typedef void (writefunc)(DBB_local *arg);
 typedef struct DBB_backend {
 	const char *db_name;		/* short name of DB engine */
 	const char *db_longname;	/* long name of DB engine */
-	const char *db_version;		/* version of DB engine */
 	arg_desc *db_args;			/* DB-specific options */
+	verfunc *db_verstr;		/* version of DB engine */
 	openfunc *db_open;
 	closefunc *db_close;
 	readfunc *db_read;
@@ -161,3 +166,7 @@ void DBB_message(DBB_local *dl, char *msg);
 void DBB_randstring(DBB_local *dl, DBB_val *val);
 void DBB_opdone(DBB_local *dl);
 int DBB_done(DBB_local *dl);
+
+#ifdef __cplusplus
+}
+#endif
