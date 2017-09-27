@@ -91,7 +91,7 @@ static Hstctx **hists;
 
 extern DBB_backend *dbb_backend;
 
-char *CompressibleString(rndctx *ctx, float ratio, int len, char *buf)
+static char *CompressibleString(rndctx *ctx, float ratio, int len, char *buf)
 {
 	char *ptr, *end;
 	int i, raw = (int)len * ratio;
@@ -112,7 +112,7 @@ char *CompressibleString(rndctx *ctx, float ratio, int len, char *buf)
 }
 
 #define RAND_STRSIZE	10485600
-void GenerateString(DBB_local *dl)
+static void GenerateString(DBB_local *dl)
 {
 	int i;
 	char *ptr, *end;
@@ -136,7 +136,7 @@ void DBB_randstring(DBB_local *dl, DBB_val *val)
 	dl->dl_randstrpos += val->dv_size;
 }
 
-int timecmp(struct timeval *a, struct timeval *b)
+static int timecmp(struct timeval *a, struct timeval *b)
 {
 	int ret;
 	ret = a->tv_sec - b->tv_sec;
@@ -145,7 +145,7 @@ int timecmp(struct timeval *a, struct timeval *b)
 	return a->tv_usec - b->tv_usec;
 }
 
-void timesub(struct timeval *end, struct timeval *beg)
+static void timesub(struct timeval *end, struct timeval *beg)
 {
 	end->tv_sec -= beg->tv_sec;
 	end->tv_usec -= beg->tv_usec;
@@ -155,7 +155,7 @@ void timesub(struct timeval *end, struct timeval *beg)
 	}
 }
 
-void Merge(DBB_local *dst, DBB_local *src) {
+static void Merge(DBB_local *dst, DBB_local *src) {
 	DBB_hstmerge(dst->dl_hstctx, src->dl_hstctx);
 	dst->dl_done += src->dl_done;
 	dst->dl_bytes += src->dl_bytes;
@@ -191,7 +191,7 @@ void DBB_message(DBB_local *dl, char *msg) {
 	dl->dl_message.dv_size += len;
 }
 
-void TimeStr(time_t seconds, char *buf) {
+static void TimeStr(time_t seconds, char *buf) {
 	struct tm tm;
 	localtime_r(&seconds, &tm);
 	sprintf(buf, "%04d/%02d/%02d-%02d:%02d:%02d",
@@ -216,7 +216,7 @@ void DBB_opdone(DBB_local *dl) {
 	dl->dl_done++;
 }
 
-void Report(DBB_local *dl, const char *name) {
+static void Report(DBB_local *dl, const char *name) {
 	char rate[100];
 	// Pretend at least one op was done in case we are running a benchmark
 	// that does not call FinishedSingleOp().
@@ -278,7 +278,7 @@ int DBB_done(DBB_local *dl) {
 	}
 }
 
-void PrintWarnings() {
+static void PrintWarnings() {
 #if defined(__GNUC__) && !defined(__OPTIMIZE__)
 	fprintf(stdout,
 			"WARNING: Optimization is disabled: benchmarks unnecessarily slow\n"
@@ -290,7 +290,7 @@ void PrintWarnings() {
 #endif
 }
 
-void PrintEnvironment() {
+static void PrintEnvironment() {
 	fprintf(stdout, "%s: version %s\n", dbb_backend->db_longname, dbb_backend->db_verstr());
 
 #if defined(__linux)
@@ -372,7 +372,7 @@ void PrintEnvironment() {
 #endif
 }
 
-void PrintHeader() {
+static void PrintHeader() {
 	PrintEnvironment();
 	fprintf(stdout, "Keys:	   %d bytes each\n", FLAGS_key_size);
 	fprintf(stdout, "Values:	 %d bytes each (%d bytes after compression)\n",
@@ -390,8 +390,7 @@ void PrintHeader() {
 	fflush(stdout);
 }
 
-
-void *RunThread(void *v) {
+static void *RunThread(void *v) {
 	DBB_local *dl = v;
 
 	pthread_mutex_lock(&dl->dl_global->dg_mu);
@@ -433,7 +432,7 @@ void *RunThread(void *v) {
 	return NULL;
 }
 
-void *StatsThread(void *v) {
+static void *StatsThread(void *v) {
 	DBB_local *args = v;
 	DBB_global *dg = args->dl_global;
 	int i;
@@ -476,7 +475,7 @@ void *StatsThread(void *v) {
 	}
 }
 
-void RunBenchmark(int n, const char *name, DBB_global *dg) {
+static void RunBenchmark(int n, const char *name, DBB_global *dg) {
 	DBB_local *args;
 	int i;
 	pthread_t stats_thread;
@@ -550,7 +549,7 @@ void RunBenchmark(int n, const char *name, DBB_global *dg) {
 	free(args);
 }
 
-void Benchmark() {
+static void Benchmark() {
 	PrintHeader();
 
 	char *benchmarks = (char *)FLAGS_benchmarks;
@@ -675,7 +674,7 @@ void Benchmark() {
 	pthread_mutex_destroy(&dg.dg_mu);
 }
 
-arg_desc main_args[] = {
+static arg_desc main_args[] = {
 	{ "benchmarks", arg_string, &FLAGS_benchmarks },
 	{ "compression", arg_onoff, &FLAGS_compression },
 	{ "compression_ratio", arg_float, &FLAGS_compression_ratio },

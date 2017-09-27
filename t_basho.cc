@@ -29,32 +29,21 @@ static int FLAGS_open_files = 0;
 // Negative means use default settings.
 static int FLAGS_bloom_bits = -1;
 
-using leveldb::Cache;
-using leveldb::DB;
-using leveldb::FilterPolicy;
-using leveldb::Iterator;
-using leveldb::NewBloomFilterPolicy2;
-using leveldb::NewLRUCache;
-using leveldb::Options;
-using leveldb::ReadOptions;
-using leveldb::Slice;
-using leveldb::Status;
-using leveldb::WriteBatch;
-using leveldb::WriteOptions;
+using namespace leveldb;
 
 static Cache *cache;
 static const FilterPolicy *filter_policy;
-DB *db;
-WriteOptions write_options;
+static DB *db;
+static WriteOptions write_options;
 
 static void db_open(int dbflags) {
     Options options;
     options.create_if_missing = !FLAGS_use_existing_db;
 
 	if (!FLAGS_write_buffer_size)
-		FLAGS_write_buffer_size = leveldb::Options().write_buffer_size;
+		FLAGS_write_buffer_size = Options().write_buffer_size;
 	if (!FLAGS_open_files)
-		FLAGS_open_files = leveldb::Options().max_open_files;
+		FLAGS_open_files = Options().max_open_files;
 	if (FLAGS_cache_size >= 0 && !cache)
 		cache = NewLRUCache(FLAGS_cache_size);
 	if (FLAGS_bloom_bits >= 0 && !filter_policy)
@@ -64,8 +53,8 @@ static void db_open(int dbflags) {
     options.block_cache = cache;
     options.max_open_files = FLAGS_open_files;
     options.filter_policy = filter_policy;
-	options.compression = FLAGS_compression != 0 ? leveldb::kSnappyCompression : leveldb::kNoCompression;
-	options.env = leveldb::Env::Default();
+	options.compression = FLAGS_compression != 0 ? kSnappyCompression : kNoCompression;
+	options.env = Env::Default();
 	write_options = WriteOptions();
 	if (dbflags & DBB_SYNC)
         write_options.sync = true;
@@ -169,7 +158,7 @@ static void db_read(DBB_local *dl) {
 
 static char *db_verstr() {
 	static char vstr[32];
-	snprintf(vstr, sizeof(vstr), "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
+	snprintf(vstr, sizeof(vstr), "%d.%d", kMajorVersion, kMinorVersion);
 	return vstr;
 }
 
