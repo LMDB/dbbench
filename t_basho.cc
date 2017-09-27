@@ -8,6 +8,7 @@
 
 #include <leveldb/cache.h>
 #include <leveldb/db.h>
+#include <leveldb/env.h>
 #include <leveldb/filter_policy.h>
 #include <leveldb/write_batch.h>
 
@@ -16,14 +17,6 @@
 // Number of bytes to buffer in memtable before compacting
 // (initialized to default value by "main")
 static int FLAGS_write_buffer_size = 0;
-
-// Number of bytes written to each file.
-// (initialized to default value by "main")
-static int FLAGS_max_file_size = 0;
-
-// Approximate size of user data packed per block (before compression.
-// (initialized to default value by "main")
-static int FLAGS_block_size = 0;
 
 // Number of bytes to use as a cache of uncompressed data.
 // Negative means use default settings.
@@ -40,7 +33,7 @@ using leveldb::Cache;
 using leveldb::DB;
 using leveldb::FilterPolicy;
 using leveldb::Iterator;
-using leveldb::NewBloomFilterPolicy;
+using leveldb::NewBloomFilterPolicy2;
 using leveldb::NewLRUCache;
 using leveldb::Options;
 using leveldb::ReadOptions;
@@ -60,30 +53,25 @@ static void db_open(int dbflags) {
 
 	if (!FLAGS_write_buffer_size)
 		FLAGS_write_buffer_size = leveldb::Options().write_buffer_size;
-	if (!FLAGS_max_file_size)
-		FLAGS_max_file_size = leveldb::Options().max_file_size;
-	if (!FLAGS_block_size)
-		FLAGS_block_size = leveldb::Options().block_size;
 	if (!FLAGS_open_files)
 		FLAGS_open_files = leveldb::Options().max_open_files;
 	if (FLAGS_cache_size >= 0 && !cache)
 		cache = NewLRUCache(FLAGS_cache_size);
 	if (FLAGS_bloom_bits >= 0 && !filter_policy)
-		filter_policy = NewBloomFilterPolicy(FLAGS_bloom_bits);
+		filter_policy = NewBloomFilterPolicy2(FLAGS_bloom_bits);
 
-    options.block_cache = cache;
     options.write_buffer_size = FLAGS_write_buffer_size;
-    options.max_file_size = FLAGS_max_file_size;
-    options.block_size = FLAGS_block_size;
+    options.block_cache = cache;
     options.max_open_files = FLAGS_open_files;
     options.filter_policy = filter_policy;
 	options.compression = FLAGS_compression != 0 ? leveldb::kSnappyCompression : leveldb::kNoCompression;
+	options.env = leveldb::Env::Default();
 	write_options = WriteOptions();
 	if (dbflags & DBB_SYNC)
         write_options.sync = true;
 
 	char file_name[100];
-	snprintf(file_name, sizeof(file_name), "%s/leveldb", FLAGS_db);
+	snprintf(file_name, sizeof(file_name), "%s/basho", FLAGS_db);
 	int rc = mkdir(file_name, 0775);
 	if (rc && errno != EEXIST) {
 		perror("mkdir");
@@ -193,17 +181,15 @@ static char *db_verstr() {
 
 static arg_desc db_opts[] = {
 	{ "write_buffer_size", arg_int, &FLAGS_write_buffer_size },
-	{ "max_file_size", arg_int, &FLAGS_max_file_size },
-	{ "block_size", arg_int, &FLAGS_block_size },
 	{ "cache_size", arg_long, &FLAGS_cache_size },
 	{ "open_files", arg_int, &FLAGS_open_files },
 	{ "bloom_bits", arg_int, &FLAGS_bloom_bits },
 	{ NULL }
 };
 
-static DBB_backend db_leveldb = {
-	"leveldb",
-	"LevelDB",
+static DBB_backend db_basho = {
+	"basho",
+	"Basho LevelDB",
 	db_opts,
 	db_verstr,
 	db_open,
@@ -213,5 +199,5 @@ static DBB_backend db_leveldb = {
 };
 
 extern DBB_backend *dbb_backend;
-DBB_backend *dbb_backend = &db_leveldb;
+DBB_backend *dbb_backend = &db_basho;
 

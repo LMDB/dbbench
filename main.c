@@ -57,7 +57,7 @@ int FLAGS_writes_per_second;
 
 // Stats are reported every N seconds when this is
 // greater than zero.
-int FLAGS_stats_period = 10;
+int FLAGS_stats_period = 0;
 
 // Size of each value
 int FLAGS_value_size = 100;
@@ -291,7 +291,7 @@ void PrintWarnings() {
 }
 
 void PrintEnvironment() {
-	fprintf(stdout, "%s: version %s\n", dbb_backend->db_longname, dbb_backend->db_version());
+	fprintf(stdout, "%s: version %s\n", dbb_backend->db_longname, dbb_backend->db_verstr());
 
 #if defined(__linux)
 	time_t now = time(NULL);
@@ -508,7 +508,8 @@ void RunBenchmark(int n, const char *name, DBB_global *dg) {
 			GenerateString(&args[i]);
 		pthread_create(&args[i].dl_tid, NULL, RunThread, &args[i]);
 	}
-	pthread_create(&stats_thread, NULL, StatsThread, args);
+	if (FLAGS_stats_period)
+		pthread_create(&stats_thread, NULL, StatsThread, args);
 
 	pthread_mutex_lock(&dg->dg_mu);
 	while (dg->dg_initialized < n) {
@@ -535,7 +536,8 @@ void RunBenchmark(int n, const char *name, DBB_global *dg) {
 		Report(&args[0], name);
 	}
 
-	pthread_join(stats_thread, NULL);
+	if (FLAGS_stats_period)
+		pthread_join(stats_thread, NULL);
 	for (i = 0; i < n; i++) {
 		DBB_srandom(seeds[i], DBB_random(seeds[i]));
 		pthread_join(args[i].dl_tid, NULL);
