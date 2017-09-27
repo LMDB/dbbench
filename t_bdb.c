@@ -177,7 +177,7 @@ static char *db_verstr() {
 };
 
 static arg_desc db_opts[] = {
-	{ "cachesize", arg_long, &FLAGS_cache_size },
+	{ "cache_size", arg_long, &FLAGS_cache_size },
 	{ "pagesize", arg_int, &FLAGS_page_size },
 	{ NULL }
 };
