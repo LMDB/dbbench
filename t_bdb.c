@@ -22,10 +22,8 @@ static void db_open(int flags) {
 	int rc;
 	DB_TXN *txn;
 	int env_opt = DB_REGION_INIT, txn_flags;
-	char file_name[100], cmd[200];
 
-	snprintf(file_name, sizeof(file_name), "%s/bdb", FLAGS_db);
-	rc = mkdir(file_name, 0775);
+	rc = mkdir(FLAGS_db, 0775);
 	if (rc && errno != EEXIST) {
 		perror("mkdir");
 		exit(1);
@@ -43,7 +41,7 @@ static void db_open(int flags) {
 	txn_flags = DB_INIT_LOCK|DB_INIT_LOG|DB_INIT_TXN|DB_INIT_MPOOL|DB_THREAD;
 	if (!FLAGS_use_existing_db)
 		txn_flags |= DB_CREATE;
-	rc = db->open(db, file_name, txn_flags, 0664);
+	rc = db->open(db, FLAGS_db, txn_flags, 0664);
 	if (rc) {
 		fprintf(stderr, "open error: %s\n", db_strerror(rc));
 		exit(1);

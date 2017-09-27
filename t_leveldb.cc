@@ -82,14 +82,7 @@ static void db_open(int dbflags) {
 	if (dbflags & DBB_SYNC)
         write_options.sync = true;
 
-	char file_name[100];
-	snprintf(file_name, sizeof(file_name), "%s/leveldb", FLAGS_db);
-	int rc = mkdir(file_name, 0775);
-	if (rc && errno != EEXIST) {
-		perror("mkdir");
-		exit(1);
-	}
-    Status s = DB::Open(options, file_name, &db);
+    Status s = DB::Open(options, FLAGS_db, &db);
     if (!s.ok()) {
       fprintf(stderr, "open error: %s\n", s.ToString().c_str());
       exit(1);

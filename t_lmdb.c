@@ -35,8 +35,7 @@ static void db_open(int flags) {
 	char file_name[100], cmd[200];
 	size_t msize;
 
-	snprintf(file_name, sizeof(file_name), "%s/lmdb", FLAGS_db);
-	rc = mkdir(file_name, 0775);
+	rc = mkdir(FLAGS_db, 0775);
 	if (rc && errno != EEXIST) {
 		perror("mkdir");
 		exit(1);
@@ -61,7 +60,7 @@ static void db_open(int flags) {
 	msize = FLAGS_num*32L*FLAGS_value_size/10;
 	rc = mdb_env_set_mapsize(env, msize);
 	rc = mdb_env_set_maxreaders(env, FLAGS_threads + 2);
-	rc = mdb_env_open(env, file_name, env_opt, 0664);
+	rc = mdb_env_open(env, FLAGS_db, env_opt, 0664);
 	if (rc) {
 		fprintf(stderr, "open error: %s\n", mdb_strerror(rc));
 		exit(1);

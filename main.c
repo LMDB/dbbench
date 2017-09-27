@@ -562,7 +562,7 @@ void Benchmark() {
 
 	if (!FLAGS_use_existing_db) {
 		char cmd[200];
-		sprintf(cmd, "rm -rf %s/%s", FLAGS_db, dbb_backend->db_name);
+		sprintf(cmd, "rm -rf %s", FLAGS_db);
 		if (system(cmd)) exit(1);
 	}
 	while (benchmarks != NULL) {
@@ -652,7 +652,7 @@ void Benchmark() {
 			}
 			if (db_open) {
 				char cmd[200];
-				sprintf(cmd, "rm -rf %s/%s", FLAGS_db, dbb_backend->db_name);
+				sprintf(cmd, "rm -rf %s", FLAGS_db);
 				dbb_backend->db_close();
 				if (system(cmd)) exit(1);
 				db_open = 0;
@@ -666,7 +666,7 @@ void Benchmark() {
 		RunBenchmark(num_threads, name, &dg);
 		if (dg.dg_op == DO_WRITE || dg.dg_op == DO_READWRITE) {
 			char cmd[200];
-			sprintf(cmd, "du %s/%s", FLAGS_db, dbb_backend->db_name);
+			sprintf(cmd, "du %s", FLAGS_db);
 			if (system(cmd)) exit(1);
 		}
 	}
@@ -710,6 +710,8 @@ int main(int argc, char *argv[]) {
 			sprintf(dirbuf, "/tmp/dbbench-%d", geteuid());
 		}
 		mkdir(dir, 0775);
+		strcat(dirbuf, "/");
+		strcat(dirbuf, dbb_backend->db_name);
 		FLAGS_db = dir;
 	}
 
