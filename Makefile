@@ -3,10 +3,10 @@
 MAINSRCS = main.c args.c histogram.c random.c
 MAINOBJS = main.o args.o histogram.o random.o
 
-TESTSRCS = t_bdb.c t_lmdb.c t_leveldb.cc t_basho.cc t_hyper.cc
-TESTOBJS = t_bdb.o t_lmdb.o t_leveldb.o t_basho.o t_hyper.o
+TESTSRCS = t_bdb.c t_lmdb.c t_leveldb.cc t_basho.cc t_hyper.cc t_rocksdb.cc
+TESTOBJS = t_bdb.o t_lmdb.o t_leveldb.o t_basho.o t_hyper.o t_rocksdb.o
 
-TESTS = t_bdb t_lmdb t_leveldb t_basho t_hyper
+TESTS = t_bdb t_lmdb t_leveldb t_basho t_hyper t_rocksdb
 
 OPT = -O2 -DNDEBUG
 CC = gcc -pthread
@@ -41,3 +41,9 @@ t_hyper: dbb.o t_hyper.o
 	$(CXX) -o $@ $^ ../HyperLevelDB/.libs/libhyperleveldb.a -lsnappy
 t_hyper.o: t_hyper.cc
 	$(CXX) -c $(CFLAGS) -I../HyperLevelDB/include $^
+
+t_rocksdb: dbb.o t_rocksdb.o
+	$(CXX) -o $@ $^ ../rocksdb/librocksdb.a -lsnappy -llz4 -lz -lbz2 -lzstd
+t_rocksdb.o: t_rocksdb.cc
+	$(CXX) -std=c++11 -c $(CFLAGS) -I../rocksdb/include $^
+
