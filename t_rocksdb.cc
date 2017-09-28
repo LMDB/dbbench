@@ -44,8 +44,8 @@ static WriteOptions write_options;
 
 static void db_open(int dbflags) {
 	BlockBasedTableOptions block_based_options;
-    Options options;
-    options.create_if_missing = !FLAGS_use_existing_db;
+	Options options;
+	options.create_if_missing = !FLAGS_use_existing_db;
 
 	if (!FLAGS_write_buffer_size)
 		FLAGS_write_buffer_size = Options().write_buffer_size;
@@ -63,69 +63,69 @@ static void db_open(int dbflags) {
 	else
 		block_based_options.no_block_cache = true;
 	block_based_options.block_size = FLAGS_block_size;
-    block_based_options.filter_policy = filter_policy;
+	block_based_options.filter_policy = filter_policy;
 
-    options.write_buffer_size = FLAGS_write_buffer_size;
-    options.max_open_files = FLAGS_open_files;
+	options.write_buffer_size = FLAGS_write_buffer_size;
+	options.max_open_files = FLAGS_open_files;
 	options.compression = FLAGS_compression != 0 ? kSnappyCompression : kNoCompression;
 	options.table_factory.reset(NewBlockBasedTableFactory(block_based_options));
 	write_options = WriteOptions();
 	if (dbflags & DBB_SYNC)
-        write_options.sync = true;
+		write_options.sync = true;
 
 	TransactionDBOptions txn_db_options;
-    Status s = TransactionDB::Open(options, txn_db_options, FLAGS_db, &db);
-    if (!s.ok()) {
-      fprintf(stderr, "open error: %s\n", s.ToString().c_str());
-      exit(1);
-    }
+	Status s = TransactionDB::Open(options, txn_db_options, FLAGS_db, &db);
+	if (!s.ok()) {
+		fprintf(stderr, "open error: %s\n", s.ToString().c_str());
+		exit(1);
+	}
 }
 
 static void db_close() {
-    delete db;
+	delete db;
 	db = NULL;
 }
 
 static void db_write(DBB_local *dl) {
 	DBB_global *dg = dl->dl_global;
 
-    if (dg->dg_num != FLAGS_num) {
-      char msg[100];
-      snprintf(msg, sizeof(msg), "(%ld ops)", dg->dg_num);
-	  DBB_message(dl, msg);
-    }
+	if (dg->dg_num != FLAGS_num) {
+		char msg[100];
+		snprintf(msg, sizeof(msg), "(%ld ops)", dg->dg_num);
+		DBB_message(dl, msg);
+	}
 
 	DBB_val dv;
-    Status s;
-    int64_t bytes = 0;
+	Status s;
+	int64_t bytes = 0;
 	unsigned long i = 0;
 	dv.dv_size = FLAGS_value_size;
 	do {
-	  Transaction *txn = db->BeginTransaction(write_options);
-      for (int j = 0; j < dg->dg_batchsize; j++) {
-        const uint64_t k = (dg->dg_order == DO_FORWARD) ? i+j : (DBB_random(dl->dl_rndctx) % FLAGS_num);
-        char key[100];
-        snprintf(key, sizeof(key), "%016lx", k);
-		DBB_randstring(dl, &dv);
-        txn->Put(key, Slice((const char *)dv.dv_data, dv.dv_size));
-        bytes += FLAGS_value_size + FLAGS_key_size;
-        DBB_opdone(dl);
-      }
-      s = txn->Commit();
-	  delete txn;
-      if (!s.ok()) {
-        fprintf(stderr, "put error: %s\n", s.ToString().c_str());
-        exit(1);
-      }
-	  i += dg->dg_batchsize;
-    } while (!DBB_done(dl));
+		Transaction *txn = db->BeginTransaction(write_options);
+		for (int j = 0; j < dg->dg_batchsize; j++) {
+			const uint64_t k = (dg->dg_order == DO_FORWARD) ? i+j : (DBB_random(dl->dl_rndctx) % FLAGS_num);
+			char key[100];
+			snprintf(key, sizeof(key), "%016lx", k);
+			DBB_randstring(dl, &dv);
+			txn->Put(key, Slice((const char *)dv.dv_data, dv.dv_size));
+			bytes += FLAGS_value_size + FLAGS_key_size;
+			DBB_opdone(dl);
+		}
+		s = txn->Commit();
+		delete txn;
+		if (!s.ok()) {
+			fprintf(stderr, "put error: %s\n", s.ToString().c_str());
+			exit(1);
+		}
+		i += dg->dg_batchsize;
+	} while (!DBB_done(dl));
 	dl->dl_bytes += bytes;
 }
 
 static void db_read(DBB_local *dl) {
 	DBB_global *dg = dl->dl_global;
 
-    int64_t bytes = 0;
+	int64_t bytes = 0;
 	if (dl->dl_order == DO_RANDOM) {
 		ReadOptions options;
 		std::string value;
