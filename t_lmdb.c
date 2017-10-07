@@ -194,6 +194,7 @@ static void db_read(DBB_local *dl) {
 	do {
 		uint64_t k;
 		if (op == MDB_SET) {
+			k = DBB_random(dl->dl_rndctx) % FLAGS_num;
 			if (FLAGS_intkey)
 				ikey = k;
 			else

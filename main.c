@@ -164,7 +164,7 @@ static void Merge(DBB_local *dst, DBB_local *src) {
 		dst->dl_start = src->dl_start;
 	if (timecmp(&dst->dl_finish, &src->dl_finish) < 0)
 		dst->dl_finish = src->dl_finish;
-	
+
 	/* Just keep the messages from one thread */
 	if (!dst->dl_message.dv_data && src->dl_message.dv_data)
 		dst->dl_message = src->dl_message;
@@ -695,7 +695,7 @@ static arg_desc main_args[] = {
 
 static char dirbuf[1024];
 
-int main(int argc, char *argv[]) {
+int main2(int argc, char *argv[]) {
 	int i;
 	arg_setup(main_args, dbb_backend->db_args);
 	if (arg_process(argc, argv))
@@ -720,7 +720,7 @@ int main(int argc, char *argv[]) {
 		seeds[i] = DBB_randctx();
 	DBB_srandom(seeds[0], 0);
 	for (i=1; i<FLAGS_threads+1; i++)
-		DBB_randjump(seeds[0], seeds[i]);
+		DBB_randjump(seeds[i-1], seeds[i]);
 
 	hists = malloc((FLAGS_threads+1) * sizeof(Hstctx *));
 	for (i=0; i<FLAGS_threads+1; i++)
@@ -729,3 +729,5 @@ int main(int argc, char *argv[]) {
 	Benchmark();
 	return 0;
 }
+
+int main() __attribute__((weak, alias ("main2")));

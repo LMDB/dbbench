@@ -8,7 +8,7 @@ TESTOBJS = t_bdb.o t_lmdb.o t_leveldb.o t_basho.o t_hyper.o t_rocksdb.o
 
 BINDIR = bin
 TESTS = $(BINDIR)/t_bdb $(BINDIR)/t_lmdb $(BINDIR)/t_leveldb \
-	$(BINDIR)/t_basho $(BINDIR)/t_hyper $(BINDIR)/t_rocksdb
+	$(BINDIR)/t_basho $(BINDIR)/t_hyper $(BINDIR)/t_rocksdb $(BINDIR)/t_badger
 
 OPT = -O2 -DNDEBUG
 CC = gcc -pthread
@@ -52,3 +52,8 @@ $(BINDIR)/t_rocksdb: dbb.o t_rocksdb.o
 t_rocksdb.o: t_rocksdb.cc
 	$(CXX) -std=c++11 -c $(CFLAGS) -I../rocksdb/include $^
 
+$(BINDIR)/t_badger: t_badger/t_badger
+	cp t_badger/t_badger $(BINDIR)
+
+t_badger/t_badger: t_badger/cbadger.go t_badger/main.go t_badger/t_badger.c $(MAINSRCS)
+	cd t_badger; go build
