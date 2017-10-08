@@ -7,7 +7,7 @@
 
 #include "_cgo_export.h"
 
-static void *db;
+static BadgerDB *db;
 
 static void db_open(int flags) {
 	int rc;
@@ -19,9 +19,8 @@ static void db_open(int flags) {
 		exit(1);
 	}
 
-#define NOSYNC	1
 	if (flags != DBB_SYNC)
-		env_opt = NOSYNC;
+		env_opt = BADGER_DB_NOSYNC;
 
 	rc = BadgerOpen((char *)FLAGS_db, env_opt, &db);
 	if (rc) {
@@ -41,7 +40,7 @@ static void db_write(DBB_local *dl) {
 	DBB_global *dg = dl->dl_global;
 
 	DBB_val dkey, dval;
-	void *txn;
+	BadgerTxn *txn;
 	char key[100];
 	int64_t bytes = 0;
 
@@ -59,7 +58,7 @@ static void db_write(DBB_local *dl) {
 	dval.dv_size = FLAGS_value_size;
 
 	do {
-		BadgerTxnBegin(db, 1, &txn);
+		BadgerTxnBegin(db, 0, &txn);
 
 		for (int j=0; j < dg->dg_batchsize; j++) {
 
@@ -85,8 +84,8 @@ static void db_write(DBB_local *dl) {
 static void db_read(DBB_local *dl) {
 	DBB_global *dg = dl->dl_global;
 
-	void *txn;
-	void *cursor;
+	BadgerTxn *txn;
+	BadgerCursor *cursor;
 	DBB_val key, data;
 	size_t read = 0;
 	size_t found = 0;
@@ -104,7 +103,7 @@ static void db_read(DBB_local *dl) {
 		flag = 1;
 
 	if (dl->dl_order != DO_RANDOM) {
-		BadgerTxnBegin(db, 0, &txn);
+		BadgerTxnBegin(db, BADGER_TXN_READONLY, &txn);
 		BadgerCursorOpen(txn, flag, &cursor);
 	}
 
@@ -114,7 +113,7 @@ static void db_read(DBB_local *dl) {
 		if (dl->dl_order == DO_RANDOM) {
 			k = DBB_random(dl->dl_rndctx) % FLAGS_num;
 			key.dv_size = snprintf(ckey, sizeof(ckey), "%016lx", k);
-			BadgerTxnBegin(db, 0, &txn);
+			BadgerTxnBegin(db, BADGER_TXN_READONLY, &txn);
 			if (!BadgerGet(txn, &key, &data)) {
 				found++;
 				bytes += key.dv_size + data.dv_size;
