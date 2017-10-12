@@ -47,6 +47,11 @@ $(BINDIR)/t_hyper: dbb.o t_hyper.o
 t_hyper.o: t_hyper.cc
 	$(CXX) -c $(CFLAGS) -I../HyperLevelDB/include $^
 
+$(BINDIR)/t_pebbles: dbb.o t_pebbles.o
+	$(CXX) -o $@ $^ ../pebblesdb/.libs/libhyperleveldb.a -lsnappy
+t_pebbles.o: t_pebbles.cc
+	$(CXX) -c $(CFLAGS) -I../pebblesdb/include $^
+
 $(BINDIR)/t_rocksdb: dbb.o t_rocksdb.o
 	$(CXX) -o $@ $^ ../rocksdb/librocksdb.a -lsnappy -llz4 -lz -lbz2 -lzstd
 t_rocksdb.o: t_rocksdb.cc
