@@ -3,12 +3,15 @@
 MAINSRCS = main.c args.c histogram.c random.c
 MAINOBJS = main.o args.o histogram.o random.o
 
-TESTSRCS = t_bdb.c t_lmdb.c t_leveldb.cc t_basho.cc t_hyper.cc t_rocksdb.cc
-TESTOBJS = t_bdb.o t_lmdb.o t_leveldb.o t_basho.o t_hyper.o t_rocksdb.o
+TESTSRCS = t_bdb.c t_lmdb.c t_leveldb.cc t_basho.cc t_hyper.cc t_rocksdb.cc \
+           t_pebbles.cc
+TESTOBJS = t_bdb.o t_lmdb.o t_leveldb.o t_basho.o t_hyper.o t_rocksdb.o \
+           t_pebbles.o
 
 BINDIR = bin
 TESTS = $(BINDIR)/t_bdb $(BINDIR)/t_lmdb $(BINDIR)/t_leveldb \
-	$(BINDIR)/t_basho $(BINDIR)/t_hyper $(BINDIR)/t_rocksdb $(BINDIR)/t_badger
+	$(BINDIR)/t_basho $(BINDIR)/t_hyper $(BINDIR)/t_rocksdb $(BINDIR)/t_badger \
+        $(BINDIR)/t_pebbles
 
 OPT = -O2 -DNDEBUG
 CC = gcc -pthread
