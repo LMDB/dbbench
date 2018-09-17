@@ -4,9 +4,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <assert.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 
 #include "dbb.h"
 
@@ -82,6 +84,9 @@ int FLAGS_histogram = 0;
 // flag and also specify a benchmark that wants a fresh database, that
 // benchmark will fail.
 int FLAGS_use_existing_db = 0;
+
+// If true, running on a raw device
+int FLAGS_rawdev = 0;
 
 // Use the db with the following name.
 const char* FLAGS_db = NULL;
@@ -549,6 +554,24 @@ static void RunBenchmark(int n, const char *name, DBB_global *dg) {
 	free(args);
 }
 
+static void killdb() {
+#define VM_ALIGN	0x200000
+	if (FLAGS_rawdev) {
+		int fd;
+		char *ptr;
+		fd = open(FLAGS_db, O_RDWR);
+		ptr = mmap(NULL, VM_ALIGN, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+		memset(ptr, 0, 16384);
+		msync(ptr, 16384, MS_SYNC);
+		munmap(ptr, VM_ALIGN);
+		close(fd);
+	} else {
+		char cmd[200];
+		sprintf(cmd, "rm -rf %s", FLAGS_db);
+		if (system(cmd)) exit(1);
+	}
+}
+
 static void Benchmark() {
 	PrintHeader();
 
@@ -560,9 +583,7 @@ static void Benchmark() {
 	pthread_cond_init(&dg.dg_cv, NULL);
 
 	if (!FLAGS_use_existing_db) {
-		char cmd[200];
-		sprintf(cmd, "rm -rf %s", FLAGS_db);
-		if (system(cmd)) exit(1);
+		killdb();
 	}
 	while (benchmarks != NULL) {
 		char *sep = strchr(benchmarks, ',');
@@ -650,10 +671,8 @@ static void Benchmark() {
 				continue;
 			}
 			if (db_open) {
-				char cmd[200];
-				sprintf(cmd, "rm -rf %s", FLAGS_db);
 				dbb_backend->db_close();
-				if (system(cmd)) exit(1);
+				killdb();
 				db_open = 0;
 			}
 		}
@@ -712,6 +731,14 @@ int main2(int argc, char *argv[]) {
 		strcat(dirbuf, "/");
 		strcat(dirbuf, dbb_backend->db_name);
 		FLAGS_db = dir;
+	}
+
+	{
+		struct stat st;
+		int rc;
+		rc = stat(FLAGS_db, &st);
+		if (rc == 0 && (S_ISBLK(st.st_mode) || S_ISCHR(st.st_mode)))
+			FLAGS_rawdev = 1;
 	}
 
 	/* Set up an extra randctx */
