@@ -35,6 +35,9 @@ $(BINDIR)/t_bdb: dbb.o t_bdb.o
 $(BINDIR)/t_lmdb: dbb.o t_lmdb.o
 	$(CC) -o $@ $^ -Wl,-Bstatic -llmdb -Wl,-Bdynamic -lsnappy -lm
 
+$(BINDIR)/t_mdbx: dbb.o t_mdbx.o
+	$(CC) -o $@ $^ -Wl,-Bstatic -lmdbx -Wl,-Bdynamic -lsnappy -lm
+
 $(BINDIR)/t_leveldb: dbb.o t_leveldb.o
 	$(CXX) -o $@ $^ ../leveldb/out-static/libleveldb.a -lsnappy
 t_leveldb.o: t_leveldb.cc
