@@ -22,8 +22,14 @@ static int FLAGS_writemap = 1;
 // The Linux kernel does readahead by default
 static int FLAGS_readahead = 1;
 
+// Use direct I/O
+static int FLAGS_directio = 0;
+
 // If true, use binary integer keys
 static int FLAGS_intkey = 0;
+
+// If true, set explicit page size
+static int FLAGS_pagesize = 0;
 
 static MDB_env *env;
 static MDB_dbi dbi;
@@ -48,16 +54,22 @@ static void db_open(int flags) {
 
 	if (FLAGS_writemap)
 		env_opt |= MDB_WRITEMAP;
+	if (!FLAGS_readahead)
+		env_opt |= MDB_NORDAHEAD;
 #ifdef MDB_CLEANMEM
 	if (FLAGS_cleanmem)
 		env_opt |= MDB_CLEANMEM;
 #endif
-	if (!FLAGS_readahead)
-		env_opt |= MDB_NORDAHEAD;
+#ifdef MDB_DIRECTIO
+	if (FLAGS_directio)
+		env_opt |= MDB_DIRECTIO;
+#endif
 
 	// Create tuning options and open the database
 	rc = mdb_env_create(&env);
 	msize = FLAGS_num*32L*FLAGS_value_size/10;
+	if (FLAGS_pagesize)
+		rc = mdb_env_set_pagesize(env, FLAGS_pagesize);
 	rc = mdb_env_set_mapsize(env, msize);
 	rc = mdb_env_set_maxreaders(env, FLAGS_threads + 2);
 	rc = mdb_env_open(env, FLAGS_db, env_opt, 0664);
@@ -243,6 +255,8 @@ static arg_desc db_opts[] = {
 	{ "readahead", arg_onoff, &FLAGS_readahead },
 	{ "intkey", arg_onoff, &FLAGS_intkey },
 	{ "cleanmem", arg_onoff, &FLAGS_cleanmem },
+	{ "directio", arg_onoff, &FLAGS_directio },
+	{ "pagesize", arg_int, &FLAGS_pagesize },
 	{ NULL }
 };
 
