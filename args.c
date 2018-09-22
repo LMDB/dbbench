@@ -95,14 +95,18 @@ int arg_process(int argc, char *argv[])
 			break;
 			}
 		case arg_magic: {
+			int ret;
 			arg_func *func = (arg_func *)our_args[opt_index].ad_arg_ptr;
-			if (func(optarg) == -1)
+			ret = func(optarg);
+			if (ret == -1)
 				goto garbage;
+			if (ret == 1)
+				return 0;
 			break;
 			}
 		}
 	}
-	return 0;
+	return 1;
 garbage:
 	fprintf(stderr, "garbage argument \"%s\" for option %s\n", optarg, our_opts[opt_index].name);
 	return -1;
