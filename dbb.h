@@ -124,6 +124,9 @@ extern int64_t FLAGS_reads;
 // Number of concurrent threads to run.
 extern int FLAGS_threads;
 
+// Maximum number of concurrent threads to run.
+extern int FLAGS_max_threads;
+
 // Time in seconds for the random-ops tests to run.
 extern int FLAGS_duration;
 

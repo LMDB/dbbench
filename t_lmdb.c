@@ -71,7 +71,7 @@ static void db_open(int flags) {
 	if (FLAGS_pagesize)
 		rc = mdb_env_set_pagesize(env, FLAGS_pagesize);
 	rc = mdb_env_set_mapsize(env, msize);
-	rc = mdb_env_set_maxreaders(env, FLAGS_threads + 2);
+	rc = mdb_env_set_maxreaders(env, FLAGS_max_threads + 2);
 	rc = mdb_env_open(env, FLAGS_db, env_opt, 0664);
 	if (rc) {
 		fprintf(stderr, "open error: %s\n", mdb_strerror(rc));

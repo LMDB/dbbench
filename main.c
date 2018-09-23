@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 Howard Chu @ Symas Corp. */
+/* Copyright (c) 2017-2018 Howard Chu @ Symas Corp. */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,6 +49,9 @@ int64_t FLAGS_reads = -1;
 
 // Number of concurrent threads to run.
 int FLAGS_threads = 1;
+
+// Maximum number of threads.
+int FLAGS_max_threads = 0;
 
 // Time in seconds for the random-ops tests to run.
 int FLAGS_duration = 0;
@@ -710,6 +713,7 @@ static arg_desc main_args[] = {
 	{ "batch", arg_int, &FLAGS_batch },
 	{ "reads", arg_long, &FLAGS_reads },
 	{ "threads", arg_int, &FLAGS_threads },
+	{ "max_threads", arg_int, &FLAGS_max_threads },
 	{ "duration", arg_int, &FLAGS_duration },
 	{ "stats_period", arg_int, &FLAGS_stats_period },
 	{ "writes_per_second", arg_int, &FLAGS_writes_per_second },
@@ -748,17 +752,24 @@ int main2(int argc, char *argv[]) {
 			FLAGS_rawdev = 1;
 	}
 
-	/* Set up an extra randctx */
-	seeds = realloc(seeds, (FLAGS_threads+1) * sizeof(rndctx *));
-	for (i=0; i<FLAGS_threads+1; i++)
-		seeds[i] = DBB_randctx();
+	if (!FLAGS_max_threads)
+		FLAGS_max_threads = FLAGS_threads;
+
+	if (!seeds)
+		/* Set up an extra randctx */
+		seeds = calloc(FLAGS_max_threads+1, sizeof(rndctx *));
+	for (i=0; i<FLAGS_max_threads+1; i++)
+		if (!seeds[i]) seeds[i] = DBB_randctx();
 	DBB_srandom(seeds[0], 0);
 	for (i=1; i<FLAGS_threads+1; i++)
 		DBB_randjump(seeds[i-1], seeds[i]);
 
-	hists = realloc(hists, (FLAGS_threads+1) * sizeof(Hstctx *));
+	if (!hists)
+		hists = calloc(FLAGS_max_threads+1, sizeof(Hstctx *));
+	for (i=0; i<FLAGS_max_threads+1; i++)
+		if (!hists[i]) hists[i] = DBB_hstctx();
 	for (i=0; i<FLAGS_threads+1; i++)
-		hists[i] = DBB_hstctx();
+		DBB_hstinit(hists[i]);
 
 	Benchmark();
 	}
