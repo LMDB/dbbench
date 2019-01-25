@@ -726,10 +726,10 @@ static arg_desc main_args[] = {
 static char dirbuf[1024];
 
 int main2(int argc, char *argv[]) {
-	int i;
+	int i, aret;
 	arg_setup(main_args, dbb_backend->db_args);
 
-	while (!(arg_process(argc, argv))) {
+	while ((aret = arg_process(argc, argv)) >= 0) {
 
 	/* Choose a location for the test database if none given with --db=<path> */
 	if (FLAGS_db == NULL) {
@@ -772,6 +772,8 @@ int main2(int argc, char *argv[]) {
 		DBB_hstinit(hists[i]);
 
 	Benchmark();
+	if (!aret)
+		break;
 	}
 	if (db_open)
 		dbb_backend->db_close();
