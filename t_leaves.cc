@@ -66,6 +66,7 @@ static void db_read(DBB_local *dl) {
 		size_t found = 0;
 		char key[100];
 		do {
+			cursor.update();
 			const uint64_t k = DBB_random(dl->dl_rndctx) % FLAGS_num;
 			snprintf(key, sizeof(key), "%016lx", k);
 			read++;

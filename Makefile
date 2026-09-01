@@ -17,6 +17,7 @@ OPT = -O2 -DNDEBUG
 CC = gcc -pthread
 CXX = g++ -pthread
 CFLAGS = $(OPT)
+XOPT = -mpopcnt -mbmi -mlzcnt -mavx2
 
 all: $(BINDIR) $(TESTS)
 
@@ -41,7 +42,7 @@ $(BINDIR)/t_mdbx: dbb.o t_mdbx.o
 $(BINDIR)/t_leaves: dbb.o t_leaves.o
 	$(CXX) -o $@ $^
 t_leaves.o: t_leaves.cc
-	$(CXX) -c $(CFLAGS) -std=c++20 -I../leaves/include $^
+	$(CXX) -c $(CFLAGS) $(XOPT) -std=c++20 -I../leaves/include $^
 
 $(BINDIR)/t_leveldb: dbb.o t_leveldb.o
 	$(CXX) -o $@ $^ ../leveldb/out-static/libleveldb.a -lsnappy
